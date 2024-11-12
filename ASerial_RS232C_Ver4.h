@@ -65,16 +65,29 @@ V4_0
 
 
 class ASerial{
-private:
-
-unsigned int conectCOMnum = 0;  //接続しているポート番号
-unsigned int Baudrate = ASERIAL_BAUDRATE_NORMAL;    //通信速度(ボーレート)
-bool conectFlag = false;    //接続状況フラグ(false:未接続 true:接続中)
-
-
-
-    
 public:
+
+    //     @brief  ASerialオブジェクトを生成する
+    //     @param  baudrate    ボーレート(デフォルト9600bps)*省略可
+    explicit ASerial(uint32_t = ASERIAL_BAUDRATE_NORMAL);
+
+    ~ASerial(void);
+
+
+    //  @brief  シリアルポートをオープンする
+    //  @param  
+    void OpaenSerialPort(uint32_t);
+
+
+private:
+    HANDLE m_serial_handle = nullptr;
+    unsigned int m_conectCOMnum = 0;  //接続しているポート番号
+    unsigned int m_baudrate = ASERIAL_BAUDRATE_NORMAL;    //通信速度(ボーレート)
+    bool m_conect_flag = false;    //接続状況フラグ(false:未接続 true:接続中)
+
+
+
+
 
 
 };
