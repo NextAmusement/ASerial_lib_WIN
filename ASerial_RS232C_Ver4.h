@@ -59,6 +59,7 @@ public:
     //  @brief  シリアルポートをオープンする
     //  @param  オープンするポート番号
     void OpaenSerialPort(uint32_t);
+    
 
 
 private:
