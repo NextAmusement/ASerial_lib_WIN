@@ -1,5 +1,5 @@
 /*==============================================================*/
-//2024(C)NextAmusement  Ver4.0
+/*2024(C)NextAmusement  Ver4.0*/
 /*
 This library was created by NextAmusement to allow easy data exchange
 with Arduino and other microcomputers via serial communication (RS232C).
@@ -14,24 +14,6 @@ Incidentally, the intended use of the library is to make it into a class. Perhap
 Or perhaps the library itself should have been made into a class...
 
 [Dev] cha_maru
-
-==========================================================================
-わざわざ英語にする必要ないな。どうせ自分しか使わないし。
-気が向いたときに全てクラス化するか…
-スパゲッティになりかけてて怖い。
-極論、動けば良いんだけどさ。
-無駄が多すぎる。まあ、まだCをかじりかけの時に作り始めたし仕方ないか。
-うん。見にくい。
-変更履歴に日付書いてないのなんで？(過去の自分へ)
-
-V3_2
-==========================================================================
-ようやくクラス化
-動作とかも改善して動作速度上がればいいな
-
-V4_0
-==========================================================================
-更新日:2024/09/24
 
 */
 
@@ -75,7 +57,7 @@ public:
 
 
     //  @brief  シリアルポートをオープンする
-    //  @param  
+    //  @param  オープンするポート番号
     void OpaenSerialPort(uint32_t);
 
 
