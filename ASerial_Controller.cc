@@ -178,8 +178,7 @@ int ASerial::CommandWhite(const int command) {
     return ret;
 }
 
-int ASerial::CommandWhite(const int command, const int data_num, const unsigned
- int *data_array) {
+int ASerial::CommandWhite(const int command, const int data_num, const int *data_array) {
 	std::string format_str;
 	std::string format_data_str;
 	std::string check_data_str;

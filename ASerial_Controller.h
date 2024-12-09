@@ -110,7 +110,7 @@ class ASerial{
     //  @brief  コマンドの送信(データ無しコマンド)
     int CommandWhite(const int command);
 
-    int CommandWhite(const int command, const int data_num, const unsigned int *data_array);
+    int CommandWhite(const int command, const int data_num, const int *data_array);
 
     //  @brief  文字列を受信
     //  @param  str_buf:受信したデータを入れる文字列型ポインタ
