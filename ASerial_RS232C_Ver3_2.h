@@ -211,7 +211,9 @@ inline int ASerial_Open(unsigned int COMnum, HANDLE* handlein, int baudrate, int
 
 	COMMTIMEOUTS timeout;
 
-	timeout.ReadIntervalTimeout = 50; // 文字読込時の２も時間の全体待ち時間（msec）
+	
+
+	timeout.ReadIntervalTimeout = 50; // 文字読込時の二文字間の全体待ち時間（msec）
 
 	timeout.ReadTotalTimeoutMultiplier = 0; //読込の１文字あたりの時間
 	timeout.ReadTotalTimeoutConstant = readTimeOut; //読込エラー検出用のタイムアウト時間
@@ -373,9 +375,6 @@ inline int ASerial_Readint(HANDLE hPort, int base) {
 		ClearCommError(hPort, NULL, &ComStat);
 		Readsize = ComStat.cbInQue;
 	}
-
-
-
 
 	char datain[64] = {0};
 	int data = 0;
