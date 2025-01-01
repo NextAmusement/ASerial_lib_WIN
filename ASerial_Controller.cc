@@ -20,7 +20,7 @@ int ASerial::OpaenSerialPort(int com_num, int receive_buffer, int transmit_buffe
 
 	//swprintf_s(com_name, 20, L"COM%d\0", com_num);
 
-    sprintf_s((char*)com_name, 20, "COM%d\0", com_num);
+    sprintf_s(com_name, 20, "COM%d\0", com_num);
 
 	 
     m_serial_handle = CreateFileA(
@@ -165,9 +165,10 @@ int ASerial::White(std::string str) {
     return (int)dwSendSize;
 }
 
-
-
 int ASerial::CommandWhite(const int command) {
+	if(!GetConnectFlag()) {
+		return -1;
+	}
 
 	char str[255];
 
@@ -179,6 +180,10 @@ int ASerial::CommandWhite(const int command) {
 }
 
 int ASerial::CommandWhite(const int command, const int data_num, const int *data_array) {
+	if(!GetConnectFlag()) {
+		return -1;
+	}
+
 	std::string format_str;
 	std::string format_data_str;
 	std::string check_data_str;
@@ -246,6 +251,8 @@ int ASerial::Read(std::string *str_buf) {
 		
 		in_buf += in;
 
+		printf("in:%c\n", in);
+
 		if(in == '/'){
 			break;
 		}
@@ -260,7 +267,7 @@ int ASerial::Read(std::string *str_buf) {
 
 	int iti = in_buf.find((char)-16);
 
-	if(iti != std::string::npos){
+	if(iti != std::string::npos) {
 		in_buf = in_buf.substr(iti + tofu_size);
 	}
 
@@ -268,6 +275,18 @@ int ASerial::Read(std::string *str_buf) {
 	*str_buf = in_buf;
 
     return (int)dwSendSize;
+}
+
+int ASerial::ReadFomatDatas(long *data_buf, const int array_num) {
+	if(!GetConnectFlag()) {
+		return -1;
+	}
+	
+	std::string read_str;
+
+
+
+    return 0;
 }
 
 int ASerial::ComSetting(int baudrate){
@@ -358,4 +377,22 @@ int ASerial::SetTimeout(int read_interval_timeout, int read_timeout, int write_t
 	}
 
     return 0;
+}
+
+long ASerial::StringtoReadl(std::string *str, const char cut_c) {
+	int iti = 0;
+
+	iti = str->find(cut_c);
+
+	if(iti == std::string::npos){
+		return -1;
+	}
+
+	std::string num_str = str->substr(0, iti);
+
+	str->erase(0, iti + 1);
+
+	//const char* num = num_str.c_str();
+
+	return strtol(num_str.c_str(), NULL, 16);
 }

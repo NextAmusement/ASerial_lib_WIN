@@ -120,6 +120,8 @@ class ASerial{
     //  @return  0:成功
     int Read(std::string* str_buf);
 
+    int ReadFomatDatas(long *data_buf, const int array_num);
+
  private:
     // @brief   通信の設定を行う(内部完結)
     // @param   baudrate 通信速度(ボーレート)
@@ -135,6 +137,8 @@ class ASerial{
     // @param   read_timeout   読込エラー検出用のタイムアウト時間(msec)
     // @param   write_timeout  書き込みエラー検出用のタイムアウト時間(msec)
     int SetTimeout(int read_interval_timeout, int read_timeout, int write_timeout);
+
+    long StringtoReadl(std::string *str, const char cut_c);
 
    
 
