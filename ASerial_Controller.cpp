@@ -142,13 +142,15 @@ int ASerial::clear_buffer(void) {
     return 0;
 }
 
-int ASerial::White(std::string str) {
+int ASerial::Write(std::string str) {
 	if(!GetConnectFlag()){
 		return -1;
 	}
 
 	DWORD dwSendSize;
-	DWORD inbyte = strlen(str.c_str());
+	DWORD inbyte = str.length();
+
+	printf("length:%d\n", str.length());
 
 	int Ret = WriteFile(    //データの送信
 		m_serial_handle,          // 　通信デバイスのハンドル：CreateFile()で取得したハンドルを指定
@@ -165,8 +167,31 @@ int ASerial::White(std::string str) {
     return (int)dwSendSize;
 }
 
-int ASerial::CommandWhite(const int command) {
-	if(!GetConnectFlag()) {
+int ASerial::Write(uint8_t data, bool flag) {
+	if(!GetConnectFlag()){
+		return -1;
+	}
+
+	DWORD dwSendSize;
+
+	int Ret = WriteFile(    //データの送信
+		m_serial_handle,          // 　通信デバイスのハンドル：CreateFile()で取得したハンドルを指定
+		&data,  //　送信データのポインタを指定
+		1,                // 　送信するデータのバイト数を指定
+		&dwSendSize, //  実際に送信されたバイト数（DWORD)が格納されるポインタを指定
+		NULL          // 　　通信とは関係ない引数なのでNULLを指定　　　　
+	);
+
+	if(dwSendSize != 1 || Ret == FALSE) {
+		return -1;
+	}
+
+
+    return 0;
+}
+
+int ASerial::CommandWrite(const int command) {
+    if(!GetConnectFlag()) {
 		return -1;
 	}
 
@@ -174,13 +199,48 @@ int ASerial::CommandWhite(const int command) {
 
 	sprintf(str, "%x!%x!%x!%x/", m_device_id, 0, command, m_device_id + 0);
 
-	int ret = White(str);
+	int ret = Write(str);
 
     return ret;
 }
 
-int ASerial::CommandWhite(const int command, const int data_num, const int *data_array) {
+int ASerial::CommandWrite(uint8_t command) {
 	if(!GetConnectFlag()) {
+		return -1;
+	}
+
+	int ret = Write(START_FLAG);
+	if(ret == -1) {
+		return -1;
+	}
+
+	int ret = Write(m_device_id);
+	if(ret == -1) {
+		return -1;
+	}
+
+	int ret = Write(0xd0);
+	if(ret == -1) {
+		return -1;
+	}
+
+	int ret = Write(0xd0);
+	if(ret == -1) {
+		return -1;
+	}
+
+	int ret = Write(0xd0);
+	if(ret == -1) {
+		return -1;
+	}
+
+
+    return 0;
+}
+
+int ASerial::CommandWrite(const int command, const int data_num, const int *data_array)
+{
+    if(!GetConnectFlag()) {
 		return -1;
 	}
 
@@ -216,69 +276,38 @@ int ASerial::CommandWhite(const int command, const int data_num, const int *data
 
 	format_str += check_data_str;
 
-	int ret = White(format_str);
+	int ret = Write(format_str);
 
     return ret;
 }
 
-int ASerial::Read(std::string *str_buf) {
-	if(!GetConnectFlag()){
-		*str_buf = "\0";
-		return 1;
+int ASerial::Read(void) {
+	if(!GetConnectFlag()) {
+		return -2;
 	}
 
+	uint8_t read_data;
 	DWORD dwSendSize;
-	const int tofu_size = 2;
-	std::string in_buf;
-	clock_t Time = clock();
 
-	while(clock() - Time < ASERIAL_READTIMEOUT_NORMAL){
-		char in;
+	int ret = ReadFile(   // データの受信
+		m_serial_handle,   // 　通信デバイスのハンドル：　CreateFile()で取得したハンドルを指定
+		&read_data,       // 受信バッファーのポインタを指定：　受信データがここに格納されます。
+		1,         //　受信するバイト数を指定：　ここで指定するバイト数を受信するかまたはタイムアウト時間がくるまで
+		// ReadFile()関数は（　getc()のように　）待ちます
+		&dwSendSize,  //  実際に受信したバイト数（DWORD)が格納されるポインタを指定
+		NULL   // 通信とは関係ない引数なのでNULLを指定
+	);
 
-		int ret = ReadFile(   // データの受信
-			m_serial_handle,   // 　通信デバイスのハンドル：　CreateFile()で取得したハンドルを指定
-			&in,       // 受信バッファーのポインタを指定：　受信データがここに格納されます。
-			1,         //　受信するバイト数を指定：　ここで指定するバイト数を受信するかまたはタイムアウト時間がくるまで
-			// ReadFile()関数は（　getc()のように　）待ちます
-			&dwSendSize,  //  実際に受信したバイト数（DWORD)が格納されるポインタを指定
-			NULL   // 通信とは関係ない引数なのでNULLを指定
-		);
-
-		if(ret == FALSE){
-			*str_buf = "\0";
-			return -2;
-		}
-		
-		in_buf += in;
-
-		printf("in:%c\n", in);
-
-		if(in == '/'){
-			break;
-		}
-	}
-
-	if(clock() - Time >= ASERIAL_READTIMEOUT_NORMAL){
-		*str_buf = "\0";
+	if(ret == FALSE) {
 		return -1;
 	}
 
-	//tofu文字対策
-
-	int iti = in_buf.find((char)-16);
-
-	if(iti != std::string::npos) {
-		in_buf = in_buf.substr(iti + tofu_size);
-	}
-
-	//バッファへのコピー
-	*str_buf = in_buf;
-
-    return (int)dwSendSize;
+    return read_data;
 }
 
-int ASerial::ReadFomatDatas(long *data_buf, const int array_num) {
-	if(!GetConnectFlag()) {
+int ASerial::ReadFomatDatas(long *data_buf, const int array_num)
+{
+    if(!GetConnectFlag()) {
 		return -1;
 	}
 	

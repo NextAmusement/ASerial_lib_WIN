@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <time.h>
 
-int main(void){
+int main(void) {
     ASerial test(1004, 1);
 
     test.OpaenSerialPort(7);
@@ -16,13 +16,16 @@ int main(void){
     //     ;
     // }
 
-    test.CommandWhite(12);
+    int st = test.Write("3EC!A!1F!12!A7!FF!0!0!BF!A!EN!B3!0!3F6/");
+
+    printf("st:%d\n", st);
+
     test.Read(&buf);
 
     printf("Re :%s\n", buf.c_str());
     
 
-    // test.White("bcdefg/");
+    // test.Write("bcdefg/");
     // test.Read(&buf);
     
     // printf("char :%d\n", buf[0]);
@@ -32,11 +35,11 @@ int main(void){
 
     // for(int i = 0; i < 1; ++i){
     //     // const int data[5] = {20, 50, 0xFF, 12, 45};
-    //     // test.CommandWhite(12, 5, data);
+    //     // test.CommandWrite(12, 5, data);
 
         
         
-    //     printf("WhiteState : %d\n", test.White("3EC!A!1F!12!A7!FF!0!0!BF!A!EN!B3!0!3F6/"));
+    //     printf("WhiteState : %d\n", test.Write("3EC!A!1F!12!A7!FF!0!0!BF!A!EN!B3!0!3F6/"));
     //     printf("ReadState : %d\n", test.Read(&buf));
     //     printf("Re :%s\n", buf.c_str());
 
