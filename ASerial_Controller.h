@@ -1,5 +1,13 @@
-// ==============================================================
-// 2024(C)NextAmusement  Ver1.0
+//      File  : ASerial_Controller.h
+//      Date  : 2025/03/28
+//      Ver   : 1.00
+//      Dev   : cha_maru2112
+//
+//===note===
+//
+//    ASerial Ver1.0
+//
+// 2024(C)NextAmusement
 // 
 // This library was created by NextAmusement to allow easy data exchange
 // with Arduino and other microcomputers via serial communication (RS232C).
@@ -12,21 +20,11 @@
 // Even before that, the library had some significance because it was easy to send and receive data.
 // Incidentally, the intended use of the library is to make it into a class. Perhaps a sample class could be included in the package.
 // Or perhaps the library itself should have been made into a class...
+//
+//===History===
+//2025/03/28  Ver1.00 : 新規作成
 
-// [Dev] cha_maru
 
-// 
-
-// revision history
-// Ver1.0  completion
-// Ver1.5  Changed from sending data of type int as it is to sending it after converting it to a string.
-// Ver2.0  Overall specification changed to HANDLE specification type.
-// Ver3.1  Readint関数をタイムアウトまたはデータ受信するまで待機するように仕様変更
-// Ver3.2  ReadintArray関数を追加----24/07/07									                        
-// Ver4.0  ライブラリのクラス化・動作の最適化、改善(クラス化に伴いファイルの細分化)----24/09/24
-// [NEW]Ver1.0
-// ASerial Ver1.0に適合。それに伴い大きく仕様変更。                                                               
-// ==============================================================
 #ifndef NEXTAMUSEMENT_NA_ASERIAL_ASERIAL_H_
 #define NEXTAMUSEMENT_NA_ASERIAL_ASERIAL_H_
 
@@ -40,8 +38,6 @@
 
 #define START_FLAG 0xd0
 #define ADD_FLAG 0xad
-
-
 
 class ASerial{
  public:
@@ -110,7 +106,7 @@ class ASerial{
     //  @param  data: 送信するデータ
     //  @return -1:送信失敗(未接続含む)
     //  @return 0:送信成功
-    int Write(uint8_t data, bool flag = false);
+    int Write(uint8_t data, bool flag = true);
 
     //  @brief    コマンドの送信(データ無しコマンド)
     //  @param    command : 送信するコマンド
@@ -122,7 +118,7 @@ class ASerial{
     //  @param    data_num : データ数
     //  @param    *data_array:データが格納されている配列アドレス
     //  @return   0:正常送信 -1:送信失敗
-    int CommandWrite(const int command, const int data_num, const int *data_array);
+    int CommandWrite(uint8_t command, const int data_num, uint8_t *data_array);
 
     //  @brief    データを1バイト受信
     //  @return   -1:受信タイムアウト
@@ -130,7 +126,9 @@ class ASerial{
     //  @return   それ以外:受信したデータ
     int Read(void);
 
-    int ReadFomatDatas(long *data_buf, const int array_num);
+    int ReadFomatDatas(uint8_t *data_buf, const int array_num);
+
+    int Available(void);
 
  private:
     // @brief   通信の設定を行う(内部完結)
@@ -148,7 +146,7 @@ class ASerial{
     // @param   write_timeout  書き込みエラー検出用のタイムアウト時間(msec)
     int SetTimeout(int read_interval_timeout, int read_timeout, int write_timeout);
 
-    long StringtoReadl(std::string *str, const char cut_c);
+    //long StringtoReadl(std::string *str, const char cut_c);
 
    
 
@@ -158,6 +156,7 @@ class ASerial{
     int m_device_id = 0;
     int m_device_ver = 0;
     bool m_connect_flag = false;    //接続状況フラグ(false:未接続 true:接続中)
+    bool m_connect_permission = false; //
 
 
 

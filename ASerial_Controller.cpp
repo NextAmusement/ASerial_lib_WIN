@@ -142,30 +142,30 @@ int ASerial::clear_buffer(void) {
     return 0;
 }
 
-int ASerial::Write(std::string str) {
-	if(!GetConnectFlag()){
-		return -1;
-	}
+// int ASerial::Write(std::string str) {
+// 	if(!GetConnectFlag()){
+// 		return -1;
+// 	}
 
-	DWORD dwSendSize;
-	DWORD inbyte = str.length();
+// 	DWORD dwSendSize;
+// 	DWORD inbyte = str.length();
 
-	printf("length:%d\n", str.length());
+// 	printf("length:%d\n", str.length());
 
-	int Ret = WriteFile(    //データの送信
-		m_serial_handle,          // 　通信デバイスのハンドル：CreateFile()で取得したハンドルを指定
-		str.c_str(),  //　送信データのポインタを指定
-		inbyte,                // 　送信するデータのバイト数を指定
-		&dwSendSize, //  実際に送信されたバイト数（DWORD)が格納されるポインタを指定
-		NULL          // 　　通信とは関係ない引数なのでNULLを指定　　　　
-	);
+// 	int Ret = WriteFile(    //データの送信
+// 		m_serial_handle,          // 　通信デバイスのハンドル：CreateFile()で取得したハンドルを指定
+// 		str.c_str(),  //　送信データのポインタを指定
+// 		inbyte,                // 　送信するデータのバイト数を指定
+// 		&dwSendSize, //  実際に送信されたバイト数（DWORD)が格納されるポインタを指定
+// 		NULL          // 　　通信とは関係ない引数なのでNULLを指定　　　　
+// 	);
 
-	if (Ret == FALSE) {  //失敗した場合
-		return -1;
-	}
+// 	if (Ret == FALSE) {  //失敗した場合
+// 		return -1;
+// 	}
 
-    return (int)dwSendSize;
-}
+//     return (int)dwSendSize;
+// }
 
 int ASerial::Write(uint8_t data, bool flag) {
 	if(!GetConnectFlag()){
@@ -173,6 +173,23 @@ int ASerial::Write(uint8_t data, bool flag) {
 	}
 
 	DWORD dwSendSize;
+
+	if(flag == true && (data == START_FLAG || data == ADD_FLAG)) {
+		data -= 1;
+		uint8_t add_flag = ADD_FLAG;
+
+		int Ret = WriteFile(    //データの送信
+			m_serial_handle,          // 　通信デバイスのハンドル：CreateFile()で取得したハンドルを指定
+			&add_flag,  //　送信データのポインタを指定
+			1,                // 　送信するデータのバイト数を指定
+			&dwSendSize, //  実際に送信されたバイト数（DWORD)が格納されるポインタを指定
+			NULL          // 　　通信とは関係ない引数なのでNULLを指定　　　　
+		);
+
+		if(dwSendSize != 1 || Ret == FALSE) {
+			return -1;
+		}
+	}
 
 	int Ret = WriteFile(    //データの送信
 		m_serial_handle,          // 　通信デバイスのハンドル：CreateFile()で取得したハンドルを指定
@@ -190,26 +207,27 @@ int ASerial::Write(uint8_t data, bool flag) {
     return 0;
 }
 
-int ASerial::CommandWrite(const int command) {
-    if(!GetConnectFlag()) {
-		return -1;
-	}
+// int ASerial::CommandWrite(const int command) {
+//     if(!GetConnectFlag()) {
+// 		return -1;
+// 	}
 
-	char str[255];
+// 	char str[255];
 
-	sprintf(str, "%x!%x!%x!%x/", m_device_id, 0, command, m_device_id + 0);
+// 	sprintf(str, "%x!%x!%x!%x/", m_device_id, 0, command, m_device_id + 0);
 
-	int ret = Write(str);
+// 	int ret = Write(str);
 
-    return ret;
-}
+//     return ret;
+// }
 
 int ASerial::CommandWrite(uint8_t command) {
 	if(!GetConnectFlag()) {
 		return -1;
 	}
 
-	int ret = Write(START_FLAG);
+	//startflag write
+	int ret = Write(START_FLAG, false);
 	if(ret == -1) {
 		return -1;
 	}
@@ -219,17 +237,17 @@ int ASerial::CommandWrite(uint8_t command) {
 		return -1;
 	}
 
-	int ret = Write(0xd0);
+	int ret = Write(0);
 	if(ret == -1) {
 		return -1;
 	}
 
-	int ret = Write(0xd0);
+	int ret = Write(command);
 	if(ret == -1) {
 		return -1;
 	}
 
-	int ret = Write(0xd0);
+	int ret = Write(0);
 	if(ret == -1) {
 		return -1;
 	}
@@ -238,48 +256,48 @@ int ASerial::CommandWrite(uint8_t command) {
     return 0;
 }
 
-int ASerial::CommandWrite(const int command, const int data_num, const int *data_array)
-{
-    if(!GetConnectFlag()) {
-		return -1;
-	}
+// int ASerial::CommandWrite(const int command, const int data_num, const int *data_array)
+// {
+//     if(!GetConnectFlag()) {
+// 		return -1;
+// 	}
 
-	std::string format_str;
-	std::string format_data_str;
-	std::string check_data_str;
+// 	std::string format_str;
+// 	std::string format_data_str;
+// 	std::string check_data_str;
 
-	const int buf_size = 30;
+// 	const int buf_size = 30;
 
-	for(int i = 0; i < data_num; ++i){
-		char buf[buf_size];
+// 	for(int i = 0; i < data_num; ++i){
+// 		char buf[buf_size];
 
-		sprintf(buf, "%x!", data_array[i]);
+// 		sprintf(buf, "%x!", data_array[i]);
 
-		format_data_str += buf;
-	}
+// 		format_data_str += buf;
+// 	}
 
-	char buf[buf_size];
+// 	char buf[buf_size];
 
-	sprintf(buf, "%x!%x!%x!", m_device_id, data_num, command);
+// 	sprintf(buf, "%x!%x!%x!", m_device_id, data_num, command);
 
-	format_str = buf;
+// 	format_str = buf;
 
-	format_str += format_data_str;
+// 	format_str += format_data_str;
 
-	for(int i = 0; i < buf_size; ++i){
-		buf[i] = '\0';
-	}
+// 	for(int i = 0; i < buf_size; ++i){
+// 		buf[i] = '\0';
+// 	}
 
-	sprintf(buf, "%x/", m_device_id + data_num);
+// 	sprintf(buf, "%x/", m_device_id + data_num);
 
-	check_data_str = buf;
+// 	check_data_str = buf;
 
-	format_str += check_data_str;
+// 	format_str += check_data_str;
 
-	int ret = Write(format_str);
+// 	int ret = Write(format_str);
 
-    return ret;
-}
+//     return ret;
+// }
 
 int ASerial::Read(void) {
 	if(!GetConnectFlag()) {
@@ -298,6 +316,19 @@ int ASerial::Read(void) {
 		NULL   // 通信とは関係ない引数なのでNULLを指定
 	);
 
+	if(read_data == ADD_FLAG) {
+		int ret = ReadFile(   // データの受信
+			m_serial_handle,   // 　通信デバイスのハンドル：　CreateFile()で取得したハンドルを指定
+			&read_data,       // 受信バッファーのポインタを指定：　受信データがここに格納されます。
+			1,         //　受信するバイト数を指定：　ここで指定するバイト数を受信するかまたはタイムアウト時間がくるまで
+			// ReadFile()関数は（　getc()のように　）待ちます
+			&dwSendSize,  //  実際に受信したバイト数（DWORD)が格納されるポインタを指定
+			NULL   // 通信とは関係ない引数なのでNULLを指定
+		);
+
+		read_data += 1;
+	}
+
 	if(ret == FALSE) {
 		return -1;
 	}
@@ -305,18 +336,34 @@ int ASerial::Read(void) {
     return read_data;
 }
 
-int ASerial::ReadFomatDatas(long *data_buf, const int array_num)
-{
-    if(!GetConnectFlag()) {
-		return -1;
-	}
+int ASerial::ReadFomatDatas(uint8_t *data_buf, const int array_num) {
 	
-	std::string read_str;
+
+
 
 
 
     return 0;
 }
+
+int ASerial::Available(void) {
+	
+
+    return 0;
+}
+
+// int ASerial::ReadFomatDatas(long *data_buf, const int array_num)
+// {
+//     if(!GetConnectFlag()) {
+// 		return -1;
+// 	}
+	
+// 	std::string read_str;
+
+
+
+//     return 0;
+// }
 
 int ASerial::ComSetting(int baudrate){
     DCB dcb;
@@ -408,20 +455,20 @@ int ASerial::SetTimeout(int read_interval_timeout, int read_timeout, int write_t
     return 0;
 }
 
-long ASerial::StringtoReadl(std::string *str, const char cut_c) {
-	int iti = 0;
+// long ASerial::StringtoReadl(std::string *str, const char cut_c) {
+// 	int iti = 0;
 
-	iti = str->find(cut_c);
+// 	iti = str->find(cut_c);
 
-	if(iti == std::string::npos){
-		return -1;
-	}
+// 	if(iti == std::string::npos){
+// 		return -1;
+// 	}
 
-	std::string num_str = str->substr(0, iti);
+// 	std::string num_str = str->substr(0, iti);
 
-	str->erase(0, iti + 1);
+// 	str->erase(0, iti + 1);
 
-	//const char* num = num_str.c_str();
+// 	//const char* num = num_str.c_str();
 
-	return strtol(num_str.c_str(), NULL, 16);
-}
+// 	return strtol(num_str.c_str(), NULL, 16);
+// }
