@@ -1,40 +1,15 @@
-//      File  : ASerial_Controller.h
-//      Date  : 2025/03/28
-//      Ver   : 1.00
-//      Dev   : cha_maru2112
-//
-//===note===
-//
-//    ASerial Ver1.0
-//
-// 2024(C)NextAmusement
-// 
-// This library was created by NextAmusement to allow easy data exchange
-// with Arduino and other microcomputers via serial communication (RS232C).
-// It was also created for arcade game development and may be difficult to
-// use for other applications.
-
-
-// An aside. Actually, this library just taps the Windows API directly.
-// However, since Ver3_2(beta) or later, we have added a function to read a group of data, so it makes sense to use this library. 
-// Even before that, the library had some significance because it was easy to send and receive data.
-// Incidentally, the intended use of the library is to make it into a class. Perhaps a sample class could be included in the package.
-// Or perhaps the library itself should have been made into a class...
-//
-//===History===
-//2025/03/28  Ver1.00 : 新規作成
-
-
-#ifndef NEXTAMUSEMENT_NA_ASERIAL_ASERIAL_H_
-#define NEXTAMUSEMENT_NA_ASERIAL_ASERIAL_H_
-
-
 //include
 #include <Windows.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 #include <string>
+
+#ifndef NEXTAMUSEMENT_NA_ASERIAL_ASERIAL_H_
+#define NEXTAMUSEMENT_NA_ASERIAL_ASERIAL_H_
+
+
+
 
 #define START_FLAG 0xd0
 #define ADD_FLAG 0xad
