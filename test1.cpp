@@ -4,7 +4,7 @@
 #include <time.h>
 
 int main(void) {
-    ASerial test(1004, 1);
+    ASerial_lib_Controller_Win test(1004, 1);
 
     test.OpaenSerialPort(7);
 
