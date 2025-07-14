@@ -71,6 +71,88 @@ bool WindowsSerial::GetConnectState(void) { return m_connect_state; }
 
 int WindowsSerial::GetConnectCOM(void) { return m_connect_comnum; }
 
+int WindowsSerial::available(void)
+{
+    if (GetConnectState() == false) {
+        return -1;
+    }
+
+    COMSTAT ComStat;
+
+    ClearCommError(m_serial_handle, NULL, &ComStat);
+
+    return (int)ComStat.cbInQue;
+}
+
+int WindowsSerial::read(void)
+{
+    if (GetConnectState() == false) {
+        return -1;
+    }
+
+    int8_t read_data;
+    DWORD dwSendSize;
+
+    int ret = ReadFile(   // データの受信
+        m_serial_handle,  // 　通信デバイスのハンドル：　CreateFile()で取得したハンドルを指定
+        &read_data,       // 受信バッファーのポインタを指定：　受信データがここに格納されます。
+        1,  // 　受信するバイト数を指定：　ここで指定するバイト数を受信するかまたはタイムアウト時間がくるまで
+        // ReadFile()関数は（　getc()のように　）待ちます
+        &dwSendSize,  //  実際に受信したバイト数（DWORD)が格納されるポインタを指定
+        NULL          // 通信とは関係ない引数なのでNULLを指定
+    );
+
+    if(ret == FALSE || dwSendSize != 1) {
+		return -1;
+	}
+
+    return static_cast<int>(read_data);
+}
+
+int WindowsSerial::write(uint8_t val) {
+    if(GetConnectState() == false) {
+        return -1;
+    }
+
+    DWORD dwSendSize;
+
+    int Ret = WriteFile(    //データの送信
+		m_serial_handle,          // 　通信デバイスのハンドル：CreateFile()で取得したハンドルを指定
+		&val,  //　送信データのポインタを指定
+		1,                // 　送信するデータのバイト数を指定
+		&dwSendSize, //  実際に送信されたバイト数（DWORD)が格納されるポインタを指定
+		NULL          // 　　通信とは関係ない引数なのでNULLを指定　　　　
+	);
+
+    if(dwSendSize != 1 || Ret == FALSE) {
+		return -1;
+	}
+
+    return static_cast<int>(dwSendSize);
+}
+
+int WindowsSerial::write(uint8_t* buf, int len) {
+    if(GetConnectState() == false) {
+        return -1;
+    }
+
+    DWORD dwSendSize;
+
+    int Ret = WriteFile(    //データの送信
+		m_serial_handle,          // 　通信デバイスのハンドル：CreateFile()で取得したハンドルを指定
+		buf,  //　送信データのポインタを指定
+		len,                // 　送信するデータのバイト数を指定
+		&dwSendSize, //  実際に送信されたバイト数（DWORD)が格納されるポインタを指定
+		NULL          // 　　通信とは関係ない引数なのでNULLを指定　　　　
+	);
+
+    if(dwSendSize != len || Ret == FALSE) {
+		return -1;
+	}
+
+    return static_cast<int>(dwSendSize);
+}
+
 // private
 int WindowsSerial::ComSetting(int baudrate)
 {

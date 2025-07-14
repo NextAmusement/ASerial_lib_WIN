@@ -1,6 +1,7 @@
 #include <Windows.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <time.h>
 
 #ifndef WINDOWS_SERIAL_H
@@ -41,13 +42,24 @@ class WindowsSerial {
 	/// @return 0:未接続 0以外:ポート番号
 	int GetConnectCOM(void);
 
-	int read(void);
-
-
-
+	/// @brief 受信バッファに溜まっているデータ数を取得
+	/// @return -1:未接続 0:データなし 1以上:データ数
 	int available(void);
 
+    /// @brief データを読み取る
+    /// @return -1:未接続 -1以外:読み取ったデータ
+    int read(void);
 
+    /// @brief データを書き込む
+    /// @param val 書き込むデータ
+    /// @return -1:未接続 -1以外:書き込んだバイト数
+    int write(uint8_t val);
+
+    /// @brief データを書き込む
+    /// @param buf 書き込むデータのポインタ
+    /// @param len 書き込むデータの長さ
+    /// @return -1:未接続 -1以外:書き込んだバイト数
+    int write(uint8_t *buf, int len);
 
  private:
     //===定数定義(private)===
