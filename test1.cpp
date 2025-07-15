@@ -1,17 +1,20 @@
 
-#include "WindowsSerial\WindowsSerial.h"
 #include <stdio.h>
 #include <time.h>
-#include <string>
-#include <iostream>
 
-int main(void) {
+#include <iostream>
+#include <string>
+
+#include "WindowsSerial\WindowsSerial.h"
+
+int main(void)
+{
     WindowsSerial test;
 
-    int st = test.OpenPort(11);
+    int st = test.OpenPort(6);
 
-    if(st == 0){
-        printf("OPEN SERIAL PORT\n");
+    if (st == 0) {
+        printf("===OPEN SERIAL PORT===\n");
         printf("COM%d : %d\n", test.GetConnectCOM(), test.GetConnectState());
     }
     else {
@@ -19,23 +22,39 @@ int main(void) {
         printf("st = %d", st);
         return 0;
     }
-    
 
-    while(1) {
+    while (1) {
         std::string str = "";
         printf(">>>");
         std::getline(std::cin, str);
-        
-        if(str == "end"){
+
+        if (str == "end") {
             break;
         }
+
+        test.write(str);
+
+        Sleep(3);
+
+        while (test.available() > 0) {
+            char read_c = (char)test.read();
+            if (read_c == -1) {
+                printf("**read miss**\n");
+            }
+            else {
+                printf("%c", read_c);
+            }
+        }
+
+        printf("\n");
+
+        test.clear();
     }
 
     test.ClosePort();
 
-    printf("CLOSE SERIAL PORT\n");
+    printf("===CLOSE SERIAL PORT===\n");
     printf("COM%d : %d\n", test.GetConnectCOM(), test.GetConnectState());
 
     return 0;
-    
 }

@@ -18,7 +18,7 @@ int WindowsSerial::OpenPort(int com_num,
 
     char com_name[20];
 
-    if(com_num >= 10){ // COM番号が10以上の場合、\\.\COMx形式で指定
+    if (com_num >= 10) {  // COM番号が10以上の場合、\\.\COMx形式で指定
         sprintf_s(com_name, 20, "\\\\.\\COM%d\0", com_num);
     }
     else {
@@ -109,58 +109,103 @@ int WindowsSerial::read(void)
         NULL          // 通信とは関係ない引数なのでNULLを指定
     );
 
-    if(ret == FALSE || dwSendSize != 1) {
-		return -1;
-	}
+    if (ret == FALSE || dwSendSize != 1) {
+        return -1;
+    }
 
     return static_cast<int>(read_data);
 }
 
-int WindowsSerial::write(uint8_t val) {
-    if(GetConnectState() == false) {
+int WindowsSerial::write(uint8_t val)
+{
+    if (GetConnectState() == false) {
         return -1;
     }
 
     DWORD dwSendSize;
 
-    int Ret = WriteFile(    //データの送信
-		m_serial_handle,          // 　通信デバイスのハンドル：CreateFile()で取得したハンドルを指定
-		&val,  //　送信データのポインタを指定
-		1,                // 　送信するデータのバイト数を指定
-		&dwSendSize, //  実際に送信されたバイト数（DWORD)が格納されるポインタを指定
-		NULL          // 　　通信とは関係ない引数なのでNULLを指定　　　　
-	);
+    int Ret = WriteFile(  // データの送信
+        m_serial_handle,  // 　通信デバイスのハンドル：CreateFile()で取得したハンドルを指定
+        &val,             // 　送信データのポインタを指定
+        1,                // 　送信するデータのバイト数を指定
+        &dwSendSize,      //  実際に送信されたバイト数（DWORD)が格納されるポインタを指定
+        NULL              // 　　通信とは関係ない引数なのでNULLを指定　　　　
+    );
 
-    if(dwSendSize != 1 || Ret == FALSE) {
-		return -1;
-	}
+    if (dwSendSize != 1 || Ret == FALSE) {
+        return -1;
+    }
 
     return static_cast<int>(dwSendSize);
 }
 
-int WindowsSerial::write(uint8_t* buf, int len) {
-    if(GetConnectState() == false) {
+int WindowsSerial::write(std::string str)
+{
+    if (GetConnectState() == false) {
         return -1;
     }
 
     DWORD dwSendSize;
 
-    int Ret = WriteFile(    //データの送信
-		m_serial_handle,          // 　通信デバイスのハンドル：CreateFile()で取得したハンドルを指定
-		buf,  //　送信データのポインタを指定
-		len,                // 　送信するデータのバイト数を指定
-		&dwSendSize, //  実際に送信されたバイト数（DWORD)が格納されるポインタを指定
-		NULL          // 　　通信とは関係ない引数なのでNULLを指定　　　　
-	);
+    int Ret = WriteFile(  // データの送信
+        m_serial_handle,  // 　通信デバイスのハンドル：CreateFile()で取得したハンドルを指定
+        str.c_str(),      // 　送信データのポインタを指定
+        str.length(),     // 　送信するデータのバイト数を指定
+        &dwSendSize,      //  実際に送信されたバイト数（DWORD)が格納されるポインタを指定
+        NULL              // 　　通信とは関係ない引数なのでNULLを指定　　　　
+    );
 
-    if(dwSendSize != len || Ret == FALSE) {
-		return -1;
-	}
+    if (dwSendSize != str.length() || Ret == FALSE) {
+        return -1;
+    }
 
     return static_cast<int>(dwSendSize);
 }
 
-// private
+int WindowsSerial::write(uint8_t* buf, int len)
+{
+    if (GetConnectState() == false) {
+        return -1;
+    }
+
+    DWORD dwSendSize;
+
+    int Ret = WriteFile(  // データの送信
+        m_serial_handle,  // 　通信デバイスのハンドル：CreateFile()で取得したハンドルを指定
+        buf,              // 　送信データのポインタを指定
+        len,              // 　送信するデータのバイト数を指定
+        &dwSendSize,      //  実際に送信されたバイト数（DWORD)が格納されるポインタを指定
+        NULL              // 　　通信とは関係ない引数なのでNULLを指定　　　　
+    );
+
+    if (dwSendSize != len || Ret == FALSE) {
+        return -1;
+    }
+
+    return static_cast<int>(dwSendSize);
+}
+
+int WindowsSerial::clear(void)
+{
+    if (GetConnectState() == false) {
+        return -1;
+    }
+
+    int ret = PurgeComm(  // 消去
+        m_serial_handle,  // 　通信デバイスのハンドル：CreateFile()で取得したハンドルを指定
+        PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR
+        //   実行する操作： 上記は未処理の読書きの中止及び送受信のバッファーのクリアを指定
+    );
+
+    if (ret == FALSE) {
+        return -1;
+    }
+
+    return 0;
+}
+
+//===private===
+
 int WindowsSerial::ComSetting(int baudrate)
 {
     DCB dcb;

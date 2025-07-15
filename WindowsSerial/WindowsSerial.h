@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <time.h>
+#include <string>
 
 #ifndef WINDOWS_SERIAL_H
 #define WINDOWS_SERIAL_H
@@ -58,11 +58,20 @@ class WindowsSerial {
     /// @return -1:未接続 -1以外:書き込んだバイト数
     int write(uint8_t val);
 
+    /// @brief 文字列を書き込む
+    /// @param str 書き込む文字列
+    /// @return -1:未接続 -1以外:書き込んだバイト数
+    int write(std::string str);
+
     /// @brief データを書き込む
     /// @param buf 書き込むデータのポインタ
     /// @param len 書き込むデータの長さ
     /// @return -1:未接続 -1以外:書き込んだバイト数
     int write(uint8_t *buf, int len);
+    
+    /// @brief バッファをクリアする
+    /// @return 0:成功 -1:失敗
+    int clear(void);
 
  private:
     //===定数定義(private)===
