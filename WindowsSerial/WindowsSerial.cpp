@@ -14,9 +14,16 @@ int WindowsSerial::OpenPort(int com_num,
         ClosePort();
     }
 
+    int st = 0;
+
     char com_name[20];
 
-    sprintf_s(com_name, 20, "COM%d\0", com_num);
+    if(com_num >= 10){ // COM番号が10以上の場合、\\.\COMx形式で指定
+        sprintf_s(com_name, 20, "\\\\.\\COM%d\0", com_num);
+    }
+    else {
+        sprintf_s(com_name, 20, "COM%d\0", com_num);
+    }
 
     m_serial_handle = CreateFileA(
         com_name,                      // 　　ポートの名前： どのポートを開くのか
@@ -32,22 +39,22 @@ int WindowsSerial::OpenPort(int com_num,
         return -1;
     }
 
-    int st = ComSetting(m_baudrate);
+    st = ComSetting(m_baudrate);
     if (st == -1) {
         ClosePort();
-        return -1;
+        return -2;
     }
 
-    int st = SetBuffer(receive_buffer, transmit_buffer);
+    st = SetBuffer(receive_buffer, transmit_buffer);
     if (st == -1) {
         ClosePort();
-        return -1;
+        return -3;
     }
 
-    int st = SetTimeout(read_interval_timeout, read_timeout, write_timeout);
+    st = SetTimeout(read_interval_timeout, read_timeout, write_timeout);
     if (st == -1) {
         ClosePort();
-        return -1;
+        return -4;
     }
 
     m_connect_comnum = com_num;  // 接続しているポート番号を更新

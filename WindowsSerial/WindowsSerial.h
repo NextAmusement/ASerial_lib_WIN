@@ -23,6 +23,9 @@ class WindowsSerial {
     /// @param write_timeout 書き込みタイムアウト(msec)*省略可
     /// @return 0:オープン成功
     /// @return -1:オープン失敗
+    /// @return -2:通信設定失敗
+    /// @return -3:受信バッファ設定失敗
+    /// @return -4:タイムアウト設定失敗
     int OpenPort(int com_num,
                         int receive_buffer = ASERIAL_RECEIVEBUFFER_NORMAL,
                         int transmit_buffer = ASERIAL_TRANSMITBUFFER_NOMAL,

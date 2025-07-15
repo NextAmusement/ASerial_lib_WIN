@@ -1,55 +1,40 @@
 
-#include "ASerial_Controller.h"
+#include "WindowsSerial\WindowsSerial.h"
 #include <stdio.h>
 #include <time.h>
+#include <string>
+#include <iostream>
 
 int main(void) {
-    ASerial_lib_Controller_Win test(1004, 1);
+    WindowsSerial test;
 
-    test.OpaenSerialPort(7);
+    int st = test.OpenPort(11);
 
-    printf("COM%d : %d\n", test.GetConnectCOMnum(), test.GetConnectFlag());
-
-    std::string buf = "\0";
-
-    // for(int i = 0; i < 100000; ++i){
-    //     ;
-    // }
-
-    int st = test.Write("3EC!A!1F!12!A7!FF!0!0!BF!A!EN!B3!0!3F6/");
-
-    printf("st:%d\n", st);
-
-    test.Read(&buf);
-
-    printf("Re :%s\n", buf.c_str());
+    if(st == 0){
+        printf("OPEN SERIAL PORT\n");
+        printf("COM%d : %d\n", test.GetConnectCOM(), test.GetConnectState());
+    }
+    else {
+        printf("***NO OPEN SERIAL PORT***\n");
+        printf("st = %d", st);
+        return 0;
+    }
     
 
-    // test.Write("bcdefg/");
-    // test.Read(&buf);
-    
-    // printf("char :%d\n", buf[0]);
-    // printf("Re :%s\n", buf.c_str());
-
-    // clock_t Time = clock();
-
-    // for(int i = 0; i < 1; ++i){
-    //     // const int data[5] = {20, 50, 0xFF, 12, 45};
-    //     // test.CommandWrite(12, 5, data);
-
+    while(1) {
+        std::string str = "";
+        printf(">>>");
+        std::getline(std::cin, str);
         
-        
-    //     printf("WhiteState : %d\n", test.Write("3EC!A!1F!12!A7!FF!0!0!BF!A!EN!B3!0!3F6/"));
-    //     printf("ReadState : %d\n", test.Read(&buf));
-    //     printf("Re :%s\n", buf.c_str());
-
-    // }
-
-    // printf("Time : %d\n", clock() - Time);
+        if(str == "end"){
+            break;
+        }
+    }
 
     test.ClosePort();
 
-    printf("COM%d : %d\n", test.GetConnectCOMnum(), test.GetConnectFlag());
+    printf("CLOSE SERIAL PORT\n");
+    printf("COM%d : %d\n", test.GetConnectCOM(), test.GetConnectState());
 
     return 0;
     
