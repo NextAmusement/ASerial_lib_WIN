@@ -39,7 +39,7 @@ class WindowsSerial {
 
 	/// @brief ポートの接続状態を取得
 	/// @return true:接続中 false:未接続
-	bool GetConnectState(void);
+	bool GetState(void);
 	
 	/// @brief 接続しているCOM番号を取得 
 	/// @return 0:未接続 0以外:ポート番号

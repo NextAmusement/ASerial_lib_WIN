@@ -10,7 +10,7 @@ int WindowsSerial::OpenPort(int com_num,
                             int read_timeout,
                             int write_timeout)
 {
-    if (m_connect_state == true) {
+    if (GetState() == true) {
         ClosePort();
     }
 
@@ -74,13 +74,13 @@ int WindowsSerial::ClosePort(void)
     return 0;
 }
 
-bool WindowsSerial::GetConnectState(void) { return m_connect_state; }
+bool WindowsSerial::GetState(void) { return m_connect_state; }
 
 int WindowsSerial::GetConnectCOM(void) { return m_connect_comnum; }
 
 int WindowsSerial::available(void)
 {
-    if (GetConnectState() == false) {
+    if (GetState() == false) {
         return -1;
     }
 
@@ -93,7 +93,7 @@ int WindowsSerial::available(void)
 
 int WindowsSerial::read(void)
 {
-    if (GetConnectState() == false) {
+    if (GetState() == false) {
         return -1;
     }
 
@@ -118,7 +118,7 @@ int WindowsSerial::read(void)
 
 int WindowsSerial::write(uint8_t val)
 {
-    if (GetConnectState() == false) {
+    if (GetState() == false) {
         return -1;
     }
 
@@ -141,7 +141,7 @@ int WindowsSerial::write(uint8_t val)
 
 int WindowsSerial::write(std::string str)
 {
-    if (GetConnectState() == false) {
+    if (GetState() == false) {
         return -1;
     }
 
@@ -164,7 +164,7 @@ int WindowsSerial::write(std::string str)
 
 int WindowsSerial::write(uint8_t* buf, int len)
 {
-    if (GetConnectState() == false) {
+    if (GetState() == false) {
         return -1;
     }
 
@@ -187,7 +187,7 @@ int WindowsSerial::write(uint8_t* buf, int len)
 
 int WindowsSerial::clear(void)
 {
-    if (GetConnectState() == false) {
+    if (GetState() == false) {
         return -1;
     }
 

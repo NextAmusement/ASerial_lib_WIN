@@ -1,65 +1,186 @@
 #include "ASerial_lib_Controller_Win.h"
+
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
 #include <time.h>
-#include <string>
 #include <wchar.h>
-#include "WindowsSerial.h"
 
-ASerial_lib_Controller_Win::ASerial_lib_Controller_Win(int target_device_id, int baudrate) : ASerialPacket(target_device_id){
-    
+#include <string>
+
+#include "WindowsSerial/WindowsSerial.h"
+
+ASerial_lib_Controller_Win::ASerial_lib_Controller_Win(int target_device_id, int device_ver)
+    : ASerialPacket(target_device_id)
+{
+    m_device_ver_max = device_ver;
+    m_device_ver_min = device_ver;
+    m_target_device_id = target_device_id;
 }
+
+ASerial_lib_Controller_Win::ASerial_lib_Controller_Win(int target_device_id, int device_ver_min, int device_ver_max)
+    : ASerialPacket(target_device_id)
+{
+    m_device_ver_max = device_ver_max;
+    m_device_ver_min = device_ver_min;
+    m_target_device_id = target_device_id;
+}
+
+int ASerial_lib_Controller_Win::ConnectDevice(int COM_num)
+{
+    if (GetConnectionState() == true) {
+        return -1;
+    }
+
+    int st = m_inteface->OpenPort(COM_num);
+    if (st != 0) {
+        return -1;
+    }
+
+    WriteData(RESERVED_COMMAND_GET_INFO);
+
+    ASerialDataStruct::ASerialData data_buf;
+
+    clock_t read_time = clock();
+
+    while (1) {
+        int st = ReadDataProcess(&data_buf);
+
+        if (st != 0 || clock() - read_time >= 200) {
+            break;
+        }
+    }
+
+    if (clock() - read_time >= 200 || st == -1 || data_buf.data[0] != m_target_device_id ||
+        (data_buf.data[1] < m_device_ver_min && data_buf.data[1] > m_device_ver_max)) {
+        m_inteface->ClosePort();
+        return -1;
+    }
+
+    SetConnectionState(true);
+
+    return 0;
+}
+
+void ASerial_lib_Controller_Win::SetInterfacePt(WindowsSerial* interface_pt) { m_inteface = interface_pt; }
+
+int ASerial_lib_Controller_Win::ReadDataProcess(ASerialDataStruct::ASerialData* read_data_buf)
+{
+    if (GetConnectionState() == false) {
+        return -1;
+    }
+
+    int st = 0;
+    if (m_inteface->available() > 0) {
+        st = ReadPacketData(m_inteface->read(), read_data_buf);
+    }
+
+    if (st == -1) {
+        return -1;
+    }
+
+    return st;
+}
+
+int ASerial_lib_Controller_Win::WriteData(uint8_t command, uint8_t* data, uint8_t data_num)
+{
+    int BUF_SIZE = GetNeedPacketBufSize(data, data_num);
+
+    uint8_t* packet_buf = new uint8_t[BUF_SIZE];
+
+    int st = MakePacketData(data, data_num, command, packet_buf);
+
+    if (st == -1) {
+        delete[] packet_buf;
+        return -1;
+    }
+
+    int write_size = m_inteface->write(packet_buf, BUF_SIZE);
+
+    delete[] packet_buf;
+
+    if (write_size != BUF_SIZE) {
+        return -1;
+    }
+
+    return 0;
+}
+
+int ASerial_lib_Controller_Win::WriteData(uint8_t command)
+{
+    int BUF_SIZE = 6;
+
+    uint8_t* packet_buf = new uint8_t[BUF_SIZE];
+
+    int st = MakePacketData(nullptr, (uint8_t)0, command, packet_buf);
+
+    if (st == -1) {
+        delete[] packet_buf;
+        return -1;
+    }
+
+    int write_size = m_inteface->write(packet_buf, BUF_SIZE);
+
+    delete[] packet_buf;
+
+    if (write_size != BUF_SIZE) {
+        return -1;
+    }
+
+    return 0;
+}
+
 /*
-int ASerial_lib_Controller_Win::OpaenSerialPort(int com_num, int receive_buffer, int transmit_buffer, int read_interval_timeout, int read_timeout, int write_timeout){
-    int ret = 0;
-	
-	char com_name[20];
+int ASerial_lib_Controller_Win::OpaenSerialPort(int com_num, int receive_buffer, int transmit_buffer, int
+read_interval_timeout, int read_timeout, int write_timeout){ int ret = 0;
+
+        char com_name[20];
 
     sprintf_s(com_name, 20, "COM%d\0", com_num);
 
     m_serial_handle = CreateFileA(
-			com_name,     //　　ポートの名前： どのポートを開くのか
-			GENERIC_READ | GENERIC_WRITE,    //　アクセスモード：　通常送受信ともするので読書き両方を指定
-			0,  //　　共有モード：　通常0に設定　再オープン禁止
-			NULL,  //セキュリティアトリビュート：通信では通常NULLに設定　
-			OPEN_EXISTING,  //　クリエイトﾃﾞｨｽﾄﾘビューション：通常COMポートはすでに存在しているのでOPEN_EXISTINGとします。
-			FILE_ATTRIBUTE_NORMAL,  //　属性：通信の場合属性はないのでFILE_ATTRIBUTE_NORMAL（属性なし）を指定　
-			NULL    //　テンプレートのハンドル：　通信の場合関係ない　通常NULLを指定
-		);
+                        com_name,     //　　ポートの名前： どのポートを開くのか
+                        GENERIC_READ | GENERIC_WRITE,    //　アクセスモード：　通常送受信ともするので読書き両方を指定
+                        0,  //　　共有モード：　通常0に設定　再オープン禁止
+                        NULL,  //セキュリティアトリビュート：通信では通常NULLに設定　
+                        OPEN_EXISTING,
+//　クリエイトﾃﾞｨｽﾄﾘビューション：通常COMポートはすでに存在しているのでOPEN_EXISTINGとします。 FILE_ATTRIBUTE_NORMAL,
+//　属性：通信の場合属性はないのでFILE_ATTRIBUTE_NORMAL（属性なし）を指定　 NULL
+//　テンプレートのハンドル：　通信の場合関係ない　通常NULLを指定
+                );
 
-	if (m_serial_handle == INVALID_HANDLE_VALUE) {  //ハンドル取得に失敗した場合
-		ret = -1;
-	}
+        if (m_serial_handle == INVALID_HANDLE_VALUE) {  //ハンドル取得に失敗した場合
+                ret = -1;
+        }
 
-	if(ret == 0){
-		int st = ComSetting(m_baudrate);
-		if(st == -1){
-			ret = -2;
-		}
-	}
+        if(ret == 0){
+                int st = ComSetting(m_baudrate);
+                if(st == -1){
+                        ret = -2;
+                }
+        }
 
-	if(ret == 0){
-		int st = SetBuffer(receive_buffer, transmit_buffer);
-		if(st == -1){
-			ret = -3;
-		}
-	}
+        if(ret == 0){
+                int st = SetBuffer(receive_buffer, transmit_buffer);
+                if(st == -1){
+                        ret = -3;
+                }
+        }
 
-	if(ret == 0){
-		int st = SetTimeout(read_interval_timeout, read_timeout, write_timeout);
-		if(st == -1){
-			ret = -4;
-		}
-	}
+        if(ret == 0){
+                int st = SetTimeout(read_interval_timeout, read_timeout, write_timeout);
+                if(st == -1){
+                        ret = -4;
+                }
+        }
 
-	if(ret != 0){
-		ClosePort();
-		return ret;
-	}
+        if(ret != 0){
+                ClosePort();
+                return ret;
+        }
 
-	m_connect_comnum = com_num;
-	return ret;
+        m_connect_comnum = com_num;
+        return ret;
 
 }
 
@@ -70,36 +191,36 @@ int ASerial_lib_Controller_Win::ConnectDevice(int com_num) {
 }
 
 int ASerial_lib_Controller_Win::GetReceiveDetaByte(void) {
-	COMSTAT ComStat;
+        COMSTAT ComStat;
 
-	ClearCommError(m_serial_handle, NULL, &ComStat);
+        ClearCommError(m_serial_handle, NULL, &ComStat);
 
     return (int)ComStat.cbInQue;
 }
 
 int ASerial_lib_Controller_Win::GetConnectCOMnum(void) {
-	int ret;
+        int ret;
 
-	if(!GetConnectFlag()){
-		ret = 0;
-	}
-	else{
-		ret = m_connect_comnum;
-	}
+        if(!GetConnectFlag()){
+                ret = 0;
+        }
+        else{
+                ret = m_connect_comnum;
+        }
 
     return ret;
 }
 
 int ASerial_lib_Controller_Win::clear_buffer(void) {
-	int ret = PurgeComm(   //消去
-		m_serial_handle, // 　通信デバイスのハンドル：CreateFile()で取得したハンドルを指定
-		PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR
-		//   実行する操作： 上記は未処理の読書きの中止及び送受信のバッファーのクリアを指定
-	);
+        int ret = PurgeComm(   //消去
+                m_serial_handle, // 　通信デバイスのハンドル：CreateFile()で取得したハンドルを指定
+                PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR
+                //   実行する操作： 上記は未処理の読書きの中止及び送受信のバッファーのクリアを指定
+        );
 
-	if (ret == FALSE) {  //失敗した場合
-		return -1;
-	}
+        if (ret == FALSE) {  //失敗した場合
+                return -1;
+        }
 
     return 0;
 }
@@ -130,40 +251,40 @@ int ASerial_lib_Controller_Win::clear_buffer(void) {
 // }
 
 int ASerial_lib_Controller_Win::Write(uint8_t data, bool flag) {
-	if(!GetConnectFlag()){
-		return -1;
-	}
+        if(!GetConnectFlag()){
+                return -1;
+        }
 
-	DWORD dwSendSize;
+        DWORD dwSendSize;
 
-	if(flag == true && (data == START_FLAG || data == ADD_FLAG)) {
-		data -= 1;
-		uint8_t add_flag = ADD_FLAG;
+        if(flag == true && (data == START_FLAG || data == ADD_FLAG)) {
+                data -= 1;
+                uint8_t add_flag = ADD_FLAG;
 
-		int Ret = WriteFile(    //データの送信
-			m_serial_handle,          // 　通信デバイスのハンドル：CreateFile()で取得したハンドルを指定
-			&add_flag,  //　送信データのポインタを指定
-			1,                // 　送信するデータのバイト数を指定
-			&dwSendSize, //  実際に送信されたバイト数（DWORD)が格納されるポインタを指定
-			NULL          // 　　通信とは関係ない引数なのでNULLを指定　　　　
-		);
+                int Ret = WriteFile(    //データの送信
+                        m_serial_handle,          // 　通信デバイスのハンドル：CreateFile()で取得したハンドルを指定
+                        &add_flag,  //　送信データのポインタを指定
+                        1,                // 　送信するデータのバイト数を指定
+                        &dwSendSize, //  実際に送信されたバイト数（DWORD)が格納されるポインタを指定
+                        NULL          // 　　通信とは関係ない引数なのでNULLを指定　　　　
+                );
 
-		if(dwSendSize != 1 || Ret == FALSE) {
-			return -1;
-		}
-	}
+                if(dwSendSize != 1 || Ret == FALSE) {
+                        return -1;
+                }
+        }
 
-	int Ret = WriteFile(    //データの送信
-		m_serial_handle,          // 　通信デバイスのハンドル：CreateFile()で取得したハンドルを指定
-		&data,  //　送信データのポインタを指定
-		1,                // 　送信するデータのバイト数を指定
-		&dwSendSize, //  実際に送信されたバイト数（DWORD)が格納されるポインタを指定
-		NULL          // 　　通信とは関係ない引数なのでNULLを指定　　　　
-	);
+        int Ret = WriteFile(    //データの送信
+                m_serial_handle,          // 　通信デバイスのハンドル：CreateFile()で取得したハンドルを指定
+                &data,  //　送信データのポインタを指定
+                1,                // 　送信するデータのバイト数を指定
+                &dwSendSize, //  実際に送信されたバイト数（DWORD)が格納されるポインタを指定
+                NULL          // 　　通信とは関係ない引数なのでNULLを指定　　　　
+        );
 
-	if(dwSendSize != 1 || Ret == FALSE) {
-		return -1;
-	}
+        if(dwSendSize != 1 || Ret == FALSE) {
+                return -1;
+        }
 
 
     return 0;
@@ -184,35 +305,35 @@ int ASerial_lib_Controller_Win::Write(uint8_t data, bool flag) {
 // }
 
 int ASerial_lib_Controller_Win::CommandWrite(uint8_t command) {
-	if(!GetConnectFlag()) {
-		return -1;
-	}
+        if(!GetConnectFlag()) {
+                return -1;
+        }
 
-	//startflag write
-	int ret = Write(START_FLAG, false);
-	if(ret == -1) {
-		return -1;
-	}
+        //startflag write
+        int ret = Write(START_FLAG, false);
+        if(ret == -1) {
+                return -1;
+        }
 
-	int ret = Write(m_device_id);
-	if(ret == -1) {
-		return -1;
-	}
+        int ret = Write(m_device_id);
+        if(ret == -1) {
+                return -1;
+        }
 
-	int ret = Write(0);
-	if(ret == -1) {
-		return -1;
-	}
+        int ret = Write(0);
+        if(ret == -1) {
+                return -1;
+        }
 
-	int ret = Write(command);
-	if(ret == -1) {
-		return -1;
-	}
+        int ret = Write(command);
+        if(ret == -1) {
+                return -1;
+        }
 
-	int ret = Write(0);
-	if(ret == -1) {
-		return -1;
-	}
+        int ret = Write(0);
+        if(ret == -1) {
+                return -1;
+        }
 
 
     return 0;
@@ -262,44 +383,45 @@ int ASerial_lib_Controller_Win::CommandWrite(uint8_t command) {
 // }
 
 int ASerial_lib_Controller_Win::Read(void) {
-	if(!GetConnectFlag()) {
-		return -2;
-	}
+        if(!GetConnectFlag()) {
+                return -2;
+        }
 
-	uint8_t read_data;
-	DWORD dwSendSize;
+        uint8_t read_data;
+        DWORD dwSendSize;
 
-	int ret = ReadFile(   // データの受信
-		m_serial_handle,   // 　通信デバイスのハンドル：　CreateFile()で取得したハンドルを指定
-		&read_data,       // 受信バッファーのポインタを指定：　受信データがここに格納されます。
-		1,         //　受信するバイト数を指定：　ここで指定するバイト数を受信するかまたはタイムアウト時間がくるまで
-		// ReadFile()関数は（　getc()のように　）待ちます
-		&dwSendSize,  //  実際に受信したバイト数（DWORD)が格納されるポインタを指定
-		NULL   // 通信とは関係ない引数なのでNULLを指定
-	);
+        int ret = ReadFile(   // データの受信
+                m_serial_handle,   // 　通信デバイスのハンドル：　CreateFile()で取得したハンドルを指定
+                &read_data,       // 受信バッファーのポインタを指定：　受信データがここに格納されます。
+                1, //　受信するバイト数を指定：　ここで指定するバイト数を受信するかまたはタイムアウト時間がくるまで
+                // ReadFile()関数は（　getc()のように　）待ちます
+                &dwSendSize,  //  実際に受信したバイト数（DWORD)が格納されるポインタを指定
+                NULL   // 通信とは関係ない引数なのでNULLを指定
+        );
 
-	if(read_data == ADD_FLAG) {
-		int ret = ReadFile(   // データの受信
-			m_serial_handle,   // 　通信デバイスのハンドル：　CreateFile()で取得したハンドルを指定
-			&read_data,       // 受信バッファーのポインタを指定：　受信データがここに格納されます。
-			1,         //　受信するバイト数を指定：　ここで指定するバイト数を受信するかまたはタイムアウト時間がくるまで
-			// ReadFile()関数は（　getc()のように　）待ちます
-			&dwSendSize,  //  実際に受信したバイト数（DWORD)が格納されるポインタを指定
-			NULL   // 通信とは関係ない引数なのでNULLを指定
-		);
+        if(read_data == ADD_FLAG) {
+                int ret = ReadFile(   // データの受信
+                        m_serial_handle,   // 　通信デバイスのハンドル：　CreateFile()で取得したハンドルを指定
+                        &read_data,       // 受信バッファーのポインタを指定：　受信データがここに格納されます。
+                        1,
+//　受信するバイト数を指定：　ここで指定するバイト数を受信するかまたはタイムアウト時間がくるまで
+                        // ReadFile()関数は（　getc()のように　）待ちます
+                        &dwSendSize,  //  実際に受信したバイト数（DWORD)が格納されるポインタを指定
+                        NULL   // 通信とは関係ない引数なのでNULLを指定
+                );
 
-		read_data += 1;
-	}
+                read_data += 1;
+        }
 
-	if(ret == FALSE) {
-		return -1;
-	}
+        if(ret == FALSE) {
+                return -1;
+        }
 
     return read_data;
 }
 
 int ASerial_lib_Controller_Win::ReadFomatDatas(uint8_t *data_buf, const int array_num) {
-	
+
 
 
 
@@ -309,7 +431,7 @@ int ASerial_lib_Controller_Win::ReadFomatDatas(uint8_t *data_buf, const int arra
 }
 
 int ASerial_lib_Controller_Win::Available(void) {
-	
+
 
     return 0;
 }
