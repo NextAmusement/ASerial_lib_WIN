@@ -1,56 +1,60 @@
 
-#include "ASerial_Controller.h"
 #include <stdio.h>
 #include <time.h>
 
-int main(void) {
-    ASerial test(1004, 1);
+#include <iostream>
+#include <string>
 
-    test.OpaenSerialPort(7);
+#include "WindowsSerial\WindowsSerial.h"
 
-    printf("COM%d : %d\n", test.GetConnectCOMnum(), test.GetConnectFlag());
+int main(void)
+{
+    WindowsSerial test;
 
-    std::string buf = "\0";
+    int st = test.OpenPort(6);
 
-    // for(int i = 0; i < 100000; ++i){
-    //     ;
-    // }
+    if (st == 0) {
+        printf("===OPEN SERIAL PORT===\n");
+        printf("COM%d : %d\n", test.GetConnectCOM(), test.GetConnectState());
+    }
+    else {
+        printf("***NO OPEN SERIAL PORT***\n");
+        printf("st = %d", st);
+        return 0;
+    }
 
-    int st = test.Write("3EC!A!1F!12!A7!FF!0!0!BF!A!EN!B3!0!3F6/");
+    while (1) {
+        std::string str = "";
+        printf(">>>");
+        std::getline(std::cin, str);
 
-    printf("st:%d\n", st);
+        if (str == "end") {
+            break;
+        }
 
-    test.Read(&buf);
+        test.write(str);
 
-    printf("Re :%s\n", buf.c_str());
-    
+        Sleep(3);
 
-    // test.Write("bcdefg/");
-    // test.Read(&buf);
-    
-    // printf("char :%d\n", buf[0]);
-    // printf("Re :%s\n", buf.c_str());
+        while (test.available() > 0) {
+            char read_c = (char)test.read();
+            if (read_c == -1) {
+                printf("**read miss**\n");
+            }
+            else {
+                printf("%c", read_c);
+            }
+        }
 
-    // clock_t Time = clock();
+        printf("\n");
 
-    // for(int i = 0; i < 1; ++i){
-    //     // const int data[5] = {20, 50, 0xFF, 12, 45};
-    //     // test.CommandWrite(12, 5, data);
-
-        
-        
-    //     printf("WhiteState : %d\n", test.Write("3EC!A!1F!12!A7!FF!0!0!BF!A!EN!B3!0!3F6/"));
-    //     printf("ReadState : %d\n", test.Read(&buf));
-    //     printf("Re :%s\n", buf.c_str());
-
-    // }
-
-    // printf("Time : %d\n", clock() - Time);
+        test.clear();
+    }
 
     test.ClosePort();
 
-    printf("COM%d : %d\n", test.GetConnectCOMnum(), test.GetConnectFlag());
+    printf("===CLOSE SERIAL PORT===\n");
+    printf("COM%d : %d\n", test.GetConnectCOM(), test.GetConnectState());
 
     return 0;
-    
 }

@@ -1,28 +1,23 @@
-#include "ASerial_Controller.h"
-
+#include "ASerial_lib_Controller_Win.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <time.h>
 #include <string>
 #include <wchar.h>
+#include "WindowsSerial.h"
 
-ASerial::ASerial(int target_device_id, int target_device_ver, int baudrate){
-	m_device_id = target_device_id;
-	m_device_ver = target_device_ver;
-    m_baudrate = baudrate;
+ASerial_lib_Controller_Win::ASerial_lib_Controller_Win(int target_device_id, int baudrate) : ASerialPacket(target_device_id){
+    
 }
-
-int ASerial::OpaenSerialPort(int com_num, int receive_buffer, int transmit_buffer, int read_interval_timeout, int read_timeout, int write_timeout){
+/*
+int ASerial_lib_Controller_Win::OpaenSerialPort(int com_num, int receive_buffer, int transmit_buffer, int read_interval_timeout, int read_timeout, int write_timeout){
     int ret = 0;
 	
 	char com_name[20];
 
-	//swprintf_s(com_name, 20, L"COM%d\0", com_num);
-
     sprintf_s(com_name, 20, "COM%d\0", com_num);
 
-	 
     m_serial_handle = CreateFileA(
 			com_name,     //　　ポートの名前： どのポートを開くのか
 			GENERIC_READ | GENERIC_WRITE,    //　アクセスモード：　通常送受信ともするので読書き両方を指定
@@ -64,30 +59,17 @@ int ASerial::OpaenSerialPort(int com_num, int receive_buffer, int transmit_buffe
 	}
 
 	m_connect_comnum = com_num;
-	m_connect_flag = true;
 	return ret;
 
 }
 
-
-int ASerial::ClosePort(void) {
-	int ret = CloseHandle(m_serial_handle);
-	m_connect_comnum = 0;
-	m_connect_flag = false;
-	if(ret == FALSE){
-		return -1;
-	}
-
-    return 0;
-}
-
-int ASerial::ConnectDevice(int com_num) {
+int ASerial_lib_Controller_Win::ConnectDevice(int com_num) {
 
 
     return 0;
 }
 
-int ASerial::GetReceiveDetaByte(void) {
+int ASerial_lib_Controller_Win::GetReceiveDetaByte(void) {
 	COMSTAT ComStat;
 
 	ClearCommError(m_serial_handle, NULL, &ComStat);
@@ -95,27 +77,7 @@ int ASerial::GetReceiveDetaByte(void) {
     return (int)ComStat.cbInQue;
 }
 
-BOOL ASerial::GetConnectFlag(void) {
-    BOOL ret = 0;
-	if(m_connect_flag) {
-		ret = 1;
-	}
-	else{
-		ret = 0;
-	}
-
-    return ret;
-}
-
-int ASerial::GetTargetDeviceID(void) {
-    return m_device_id;
-}
-
-int ASerial::GetTargetDeviceVer(void) {
-    return m_device_ver;
-}
-
-int ASerial::GetConnectCOMnum(void) {
+int ASerial_lib_Controller_Win::GetConnectCOMnum(void) {
 	int ret;
 
 	if(!GetConnectFlag()){
@@ -128,7 +90,7 @@ int ASerial::GetConnectCOMnum(void) {
     return ret;
 }
 
-int ASerial::clear_buffer(void) {
+int ASerial_lib_Controller_Win::clear_buffer(void) {
 	int ret = PurgeComm(   //消去
 		m_serial_handle, // 　通信デバイスのハンドル：CreateFile()で取得したハンドルを指定
 		PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR
@@ -142,7 +104,7 @@ int ASerial::clear_buffer(void) {
     return 0;
 }
 
-// int ASerial::Write(std::string str) {
+// int ASerial_lib_Controller_Win::Write(std::string str) {
 // 	if(!GetConnectFlag()){
 // 		return -1;
 // 	}
@@ -167,7 +129,7 @@ int ASerial::clear_buffer(void) {
 //     return (int)dwSendSize;
 // }
 
-int ASerial::Write(uint8_t data, bool flag) {
+int ASerial_lib_Controller_Win::Write(uint8_t data, bool flag) {
 	if(!GetConnectFlag()){
 		return -1;
 	}
@@ -207,7 +169,7 @@ int ASerial::Write(uint8_t data, bool flag) {
     return 0;
 }
 
-// int ASerial::CommandWrite(const int command) {
+// int ASerial_lib_Controller_Win::CommandWrite(const int command) {
 //     if(!GetConnectFlag()) {
 // 		return -1;
 // 	}
@@ -221,7 +183,7 @@ int ASerial::Write(uint8_t data, bool flag) {
 //     return ret;
 // }
 
-int ASerial::CommandWrite(uint8_t command) {
+int ASerial_lib_Controller_Win::CommandWrite(uint8_t command) {
 	if(!GetConnectFlag()) {
 		return -1;
 	}
@@ -256,7 +218,7 @@ int ASerial::CommandWrite(uint8_t command) {
     return 0;
 }
 
-// int ASerial::CommandWrite(const int command, const int data_num, const int *data_array)
+// int ASerial_lib_Controller_Win::CommandWrite(const int command, const int data_num, const int *data_array)
 // {
 //     if(!GetConnectFlag()) {
 // 		return -1;
@@ -299,7 +261,7 @@ int ASerial::CommandWrite(uint8_t command) {
 //     return ret;
 // }
 
-int ASerial::Read(void) {
+int ASerial_lib_Controller_Win::Read(void) {
 	if(!GetConnectFlag()) {
 		return -2;
 	}
@@ -336,7 +298,7 @@ int ASerial::Read(void) {
     return read_data;
 }
 
-int ASerial::ReadFomatDatas(uint8_t *data_buf, const int array_num) {
+int ASerial_lib_Controller_Win::ReadFomatDatas(uint8_t *data_buf, const int array_num) {
 	
 
 
@@ -346,129 +308,10 @@ int ASerial::ReadFomatDatas(uint8_t *data_buf, const int array_num) {
     return 0;
 }
 
-int ASerial::Available(void) {
+int ASerial_lib_Controller_Win::Available(void) {
 	
 
     return 0;
 }
 
-// int ASerial::ReadFomatDatas(long *data_buf, const int array_num)
-// {
-//     if(!GetConnectFlag()) {
-// 		return -1;
-// 	}
-	
-// 	std::string read_str;
-
-
-
-//     return 0;
-// }
-
-int ASerial::ComSetting(int baudrate){
-    DCB dcb;
-
-	//通信の設定
-	GetCommState(m_serial_handle, &dcb);
-
-	dcb.DCBlength = sizeof(DCB);        //　 DCBのサイズ：
-
-	//データ
-	dcb.BaudRate = baudrate;                //  伝送速度：　ボーレートをbps単位で指定
-	dcb.fBinary = TRUE;                 //    バイナリモード：  通常TRUEに設定
-	dcb.ByteSize = 8;                    //　   データサイズ　：　通常　8 ビット
-	dcb.fParity = NOPARITY;         //  パリティ有無種類　：　パリティなしの場合はNOPARITYを指定
-	//                                  奇数パリティの場合は ODDPARITY 　他
-	dcb.StopBits = ONESTOPBIT;         // ストップビットの数：　通常１ビット→ ONESTOPBIT;
-
-	//ハードウェアフロー制御
-	dcb.fOutxCtsFlow = FALSE;       // 　CTSハードウェアフロー制御：CTS制御を使用しない場合はFLASEを指定
-	//   　　　　　　CTS 制御をする場合はTRUEを指定してCTS信号を監視します。                    
-	dcb.fOutxDsrFlow = FALSE;       //  DSRハードウェアフロー制御：使用しない場合はFALSEを指定
-	dcb.fDtrControl = DTR_CONTROL_DISABLE;  // DTR有効/無効：　無効なら　DTR_CONTROL_DISABLE;ISABLE
-	dcb.fRtsControl = RTS_CONTROL_DISABLE;  // RTS制御：　RTS制御をしない場合はRTS_CONTROL_DISABLEを指定
-	//　　　　　　　 RTS制御をする場合はRTS_CONTROL_ENABLE　等を指定
-
-    // ソフトウェアフロー制御
-	dcb.fOutX = FALSE;                 // 送信時XON/OFF制御の有無：　なし→FLALSE 
-	dcb.fInX = FALSE;                   // 受信時XON/XOFF制御の有無：なし→FALSE 
-	dcb.fTXContinueOnXoff = TRUE;    // 受信バッファー満杯＆XOFF受信後の継続送信可否：送信可→TRUE
-	dcb.XonLim = 512;                 // XONが送られるまでに格納できる最小バイト数：
-	dcb.XoffLim = 512;                 // XOFFが送られるまでに格納できる最小バイト数：
-	dcb.XonChar = 0x11;                 // 送信時XON文字 ( 送信可：ビジィ解除 ) の指定：
-	//　一般に、XON文字として11H ( デバイス制御１：DC1 )がよく使われます
-	dcb.XoffChar = 0x13;             // XOFF文字（送信不可：ビジー通告）の指定：なし→FALSE
-	//　一般に、XOFF文字として13H ( デバイス制御3：DC3 )がよく使われます
-
-    //その他
-	dcb.fNull = TRUE;                 // NULLバイトの破棄： 破棄する→TRUE
-	dcb.fAbortOnError = TRUE;         // エラー時の読み書き操作終了：　終了する→TRUE
-	dcb.fErrorChar = FALSE;             // パリティエラー発生時のキャラクタ（ErrorChar）置換：　なし→FLALSE
-	dcb.ErrorChar = 0x00;             // パリティエラー発生時の置換キャラクタ
-	dcb.EofChar = 0x03;             // データ終了通知キャラクタ　：　一般に0x03(ETX)がよく使われます。
-	dcb.EvtChar = 0x02;             // イベント通知キャラクタ ：　一般に0x02(STX)がよく使われます
-
-	int Ret = SetCommState(m_serial_handle, &dcb);  //SetCommState()関数にポートハンドルおよびdcb構造体のアドレスを代入する
-
-    if(Ret == FALSE) {
-        return -1;
-    }
-
-    return 0;
-}
-
-int ASerial::SetBuffer(int receive_buffer, int transmit_buffer) {
-	int Ret = SetupComm(       //設定
-		m_serial_handle, // 　通信デバイスのハンドル：CreateFile()で取得したハンドルを指定
-		receive_buffer,   //   受信バッファーサイズ：　受信のバッファーサイズをバイト単位で指定
-		transmit_buffer    // 　送信バッファーサイズ：　送信のバッファーサイズをバイト単位で指定
-	);
-
-
-	if (Ret == FALSE) {  //　失敗した場合
-		return -1;
-	}
-
-    return 0;
-}
-
-int ASerial::SetTimeout(int read_interval_timeout, int read_timeout, int write_timeout) {
-    COMMTIMEOUTS timeout;
-
-    timeout.ReadIntervalTimeout = read_interval_timeout; // 文字読込時の二文字間の全体待ち時間（msec）
-
-	timeout.ReadTotalTimeoutMultiplier = 0; //読込の１文字あたりの時間
-	timeout.ReadTotalTimeoutConstant = read_timeout; //読込エラー検出用のタイムアウト時間
-	//(受信トータルタイムアウト) = ReadTotalTimeoutMultiplier * (受信予定バイト数) + ReadTotalTimeoutConstant
-
-	timeout.WriteTotalTimeoutMultiplier = 0; //書き込み１文字あたりの待ち時間
-	timeout.WriteTotalTimeoutConstant = write_timeout;//書き込みエラー検出用のタイムアウト時間
-	//(送信トータルタイムアウト) = WriteTotalTimeoutMultiplier * (送信予定バイト数) + WriteTotalTimeoutConstant
-
-	int Ret = SetCommTimeouts(m_serial_handle, &timeout);//SetCommTimeOut()関数にポートハンドルおよびCOMMTIMEOUTS構造体の
-	//アドレスを代入します。
-
-	if (Ret == FALSE) { //失敗した場合
-		return -1;
-	}
-
-    return 0;
-}
-
-// long ASerial::StringtoReadl(std::string *str, const char cut_c) {
-// 	int iti = 0;
-
-// 	iti = str->find(cut_c);
-
-// 	if(iti == std::string::npos){
-// 		return -1;
-// 	}
-
-// 	std::string num_str = str->substr(0, iti);
-
-// 	str->erase(0, iti + 1);
-
-// 	//const char* num = num_str.c_str();
-
-// 	return strtol(num_str.c_str(), NULL, 16);
-// }
+*/
