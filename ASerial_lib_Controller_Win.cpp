@@ -62,6 +62,26 @@ int ASerial_lib_Controller_Win::ConnectDevice(int COM_num)
     return 0;
 }
 
+int ASerial_lib_Controller_Win::AutoConnectDevice(void) {
+    if (GetConnectionState() == true) {
+        return -1;
+    }
+
+    
+}
+
+int ASerial_lib_Controller_Win::DisConnectDevice(void) {
+    if(m_inteface->GetState() == false) {
+        return -1;
+    }
+
+    int st = m_inteface->ClosePort();
+
+    SetConnectionState(false);
+    
+    return st;
+}
+
 void ASerial_lib_Controller_Win::SetInterfacePt(WindowsSerial* interface_pt) { m_inteface = interface_pt; }
 
 int ASerial_lib_Controller_Win::ReadDataProcess(ASerialDataStruct::ASerialData* read_data_buf)
