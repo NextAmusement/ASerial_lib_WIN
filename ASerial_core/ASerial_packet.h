@@ -110,6 +110,14 @@ protected:
   /// @note 接続ステータスがfalseの場合、リセットコマンドやデバイス情報リクエスト以外のコマンドはエラーとなります。
   int MakePacketData(uint8_t *to_device_data, int data_num, uint8_t command, uint8_t *data_packet_out);
 
+  /// @brief パケットデータを作成(コントローラモード時)*コマンドのみ
+  /// @param command 　コマンド
+  /// @param data_packet_out パケットデータを格納するバッファへのポインタ
+  /// @return 正常時は0、エラー時は-1を返す。
+  /// @note コントローラモード時のみ使用可能。デバイスモードでは使用できません。
+  /// @note 接続ステータスがfalseの場合、リセットコマンドやデバイス情報リクエスト以外のコマンドはエラーとなります。
+  int MakePacketData(uint8_t command, uint8_t *data_packet_out);
+
 
   /// @brief パケットデータを作成(デバイスモード時)
   /// @param to_controller_data コントローラへ送信するデータ配列

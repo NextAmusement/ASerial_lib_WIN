@@ -10,7 +10,7 @@ int WindowsSerial::OpenPort(int com_num,
                             int read_timeout,
                             int write_timeout)
 {
-    if (m_connect_state == true) {
+    if (GetState() == true) {
         ClosePort();
     }
 
@@ -26,13 +26,13 @@ int WindowsSerial::OpenPort(int com_num,
     }
 
     m_serial_handle = CreateFileA(
-        com_name,                      // 　　ポートの名前： どのポートを開くのか
-        GENERIC_READ | GENERIC_WRITE,  // 　アクセスモード：　通常送受信ともするので読書き両方を指定
-        0,                             // 　　共有モード：　通常0に設定　再オープン禁止
-        NULL,                          // セキュリティアトリビュート：通信では通常NULLに設定　
-        OPEN_EXISTING,  // 　クリエイトﾃﾞｨｽﾄﾘビューション：通常COMポートはすでに存在しているのでOPEN_EXISTINGとします。
-        FILE_ATTRIBUTE_NORMAL,  // 　属性：通信の場合属性はないのでFILE_ATTRIBUTE_NORMAL（属性なし）を指定　
-        NULL                    // 　テンプレートのハンドル：　通信の場合関係ない　通常NULLを指定
+        com_name,                       // 　　ポートの名前： どのポートを開くのか
+        GENERIC_READ | GENERIC_WRITE,   // 　アクセスモード：　通常送受信ともするので読書き両方を指定
+        0,                              // 　　共有モード：　通常0に設定　再オープン禁止
+        NULL,                           // セキュリティアトリビュート：通信では通常NULLに設定　
+        OPEN_EXISTING,                  // 　クリエイトﾃﾞｨｽﾄﾘビューション：通常COMポートはすでに存在しているのでOPEN_EXISTINGとします。
+        FILE_ATTRIBUTE_NORMAL,          // 　属性：通信の場合属性はないのでFILE_ATTRIBUTE_NORMAL（属性なし）を指定　
+        NULL                            // 　テンプレートのハンドル：　通信の場合関係ない　通常NULLを指定
     );
 
     if (m_serial_handle == INVALID_HANDLE_VALUE) {  // ハンドル取得に失敗した場合
@@ -74,13 +74,13 @@ int WindowsSerial::ClosePort(void)
     return 0;
 }
 
-bool WindowsSerial::GetConnectState(void) { return m_connect_state; }
+bool WindowsSerial::GetState(void) { return m_connect_state; }
 
 int WindowsSerial::GetConnectCOM(void) { return m_connect_comnum; }
 
 int WindowsSerial::available(void)
 {
-    if (GetConnectState() == false) {
+    if (GetState() == false) {
         return -1;
     }
 
@@ -93,7 +93,7 @@ int WindowsSerial::available(void)
 
 int WindowsSerial::read(void)
 {
-    if (GetConnectState() == false) {
+    if (GetState() == false) {
         return -1;
     }
 
@@ -118,7 +118,7 @@ int WindowsSerial::read(void)
 
 int WindowsSerial::write(uint8_t val)
 {
-    if (GetConnectState() == false) {
+    if (GetState() == false) {
         return -1;
     }
 
@@ -141,7 +141,7 @@ int WindowsSerial::write(uint8_t val)
 
 int WindowsSerial::write(std::string str)
 {
-    if (GetConnectState() == false) {
+    if (GetState() == false) {
         return -1;
     }
 
@@ -164,7 +164,7 @@ int WindowsSerial::write(std::string str)
 
 int WindowsSerial::write(uint8_t* buf, int len)
 {
-    if (GetConnectState() == false) {
+    if (GetState() == false) {
         return -1;
     }
 
@@ -187,7 +187,7 @@ int WindowsSerial::write(uint8_t* buf, int len)
 
 int WindowsSerial::clear(void)
 {
-    if (GetConnectState() == false) {
+    if (GetState() == false) {
         return -1;
     }
 
@@ -227,7 +227,7 @@ int WindowsSerial::ComSetting(int baudrate)
     dcb.fOutxCtsFlow = FALSE;  // 　CTSハードウェアフロー制御：CTS制御を使用しない場合はFLASEを指定
     //   　　　　　　CTS 制御をする場合はTRUEを指定してCTS信号を監視します。
     dcb.fOutxDsrFlow = FALSE;               //  DSRハードウェアフロー制御：使用しない場合はFALSEを指定
-    dcb.fDtrControl = DTR_CONTROL_DISABLE;  // DTR有効/無効：　無効なら　DTR_CONTROL_DISABLE;ISABLE
+    dcb.fDtrControl = DTR_CONTROL_DISABLE; // DTR有効/無効：　無効なら　DTR_CONTROL_DISABLE;ISABLE
     dcb.fRtsControl = RTS_CONTROL_DISABLE;  // RTS制御：　RTS制御をしない場合はRTS_CONTROL_DISABLEを指定
     // 　　　　　　　 RTS制御をする場合はRTS_CONTROL_ENABLE　等を指定
 
@@ -256,6 +256,8 @@ int WindowsSerial::ComSetting(int baudrate)
     if (Ret == FALSE) {
         return -1;
     }
+
+    
 
     return 0;
 }

@@ -15,7 +15,7 @@ int main(void)
 
     if (st == 0) {
         printf("===OPEN SERIAL PORT===\n");
-        printf("COM%d : %d\n", test.GetConnectCOM(), test.GetConnectState());
+        printf("COM%d : %d\n", test.GetConnectCOM(), test.GetState());
     }
     else {
         printf("***NO OPEN SERIAL PORT***\n");
@@ -32,7 +32,7 @@ int main(void)
             break;
         }
 
-        test.write(str);
+        test.write((uint8_t*)str.c_str(), (int)str.length());
 
         Sleep(3);
 
@@ -54,7 +54,7 @@ int main(void)
     test.ClosePort();
 
     printf("===CLOSE SERIAL PORT===\n");
-    printf("COM%d : %d\n", test.GetConnectCOM(), test.GetConnectState());
+    printf("COM%d : %d\n", test.GetConnectCOM(), test.GetState());
 
     return 0;
 }
