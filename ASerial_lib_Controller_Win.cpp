@@ -1,6 +1,6 @@
 #include "ASerial_lib_Controller_Win.h"
 #include "WindowsSerial/WindowsSerial.h"
-#include "ASerial_core/ASerial_ErrorCodeList.h"
+#include "ASerialCore/ASerial_ErrorCodeList.h"
 
 #include <stdio.h>
 #include <stdint.h>
@@ -14,7 +14,6 @@ ASerial_lib_Controller_Win::ASerial_lib_Controller_Win(int target_device_id, int
 {
     m_device_ver_max = device_ver;
     m_device_ver_min = device_ver;
-    m_target_device_id = target_device_id;
 }
 
 ASerial_lib_Controller_Win::ASerial_lib_Controller_Win(int target_device_id, int device_ver_min, int device_ver_max)
@@ -22,7 +21,6 @@ ASerial_lib_Controller_Win::ASerial_lib_Controller_Win(int target_device_id, int
 {
     m_device_ver_max = device_ver_max;
     m_device_ver_min = device_ver_min;
-    m_target_device_id = target_device_id;
 }
 
 int ASerial_lib_Controller_Win::ConnectDevice(int COM_num)
@@ -50,7 +48,7 @@ int ASerial_lib_Controller_Win::ConnectDevice(int COM_num)
         }
     }
 
-    if (clock() - read_time >= 50 || st == -1 || data_buf.data[0] != m_target_device_id ||
+    if (clock() - read_time >= 50 || st == -1 || data_buf.data[0] != GetID() ||
         (data_buf.data[1] < m_device_ver_min && data_buf.data[1] > m_device_ver_max)) {
         m_inteface->ClosePort();
         return -1;

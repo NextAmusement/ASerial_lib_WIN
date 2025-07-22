@@ -5,13 +5,15 @@
 #include <iostream>
 #include <string>
 
-#include "WindowsSerial\WindowsSerial.h"
+// WindowsSerialのテスト
+
+#include "WindowsSerial/WindowsSerial.h"
 
 int main(void)
 {
     WindowsSerial test;
 
-    int st = test.OpenPort(6);
+    int st = test.OpenPort(6); // COM6を開く
 
     if (st == 0) {
         printf("===OPEN SERIAL PORT===\n");

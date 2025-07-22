@@ -1,5 +1,7 @@
 #include <stdio.h>
 
+//自動接続テスト
+
 #include "ASerial_lib_Controller_Win.h"
 #include "WindowsSerial/WindowsSerial.h"
 
