@@ -34,6 +34,8 @@ int ASerial_lib_Controller_Win::ConnectDevice(int COM_num)
         return -1;
     }
 
+    m_inteface->clear(); //接続したときにバッファをクリア
+
     st = WriteData(RESERVED_COMMAND_GET_INFO);
 
     ASerialDataStruct::ASerialData data_buf;

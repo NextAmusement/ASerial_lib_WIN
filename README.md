@@ -38,6 +38,6 @@ This project is licensed under the MIT License - see the [LICENSE](./LICENSE.txt
 
 ```txt
 MIT License
-? 2025 NextAmusement
+(c) 2025 NextAmusement
 See LICENSE file in the root directory.
 ```
