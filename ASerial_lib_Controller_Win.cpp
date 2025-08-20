@@ -119,6 +119,44 @@ int ASerial_lib_Controller_Win::ReadDataProcess(ASerialDataStruct::ASerialData* 
     return st;
 }
 
+int ASerial_lib_Controller_Win::ReadData(ASerialDataStruct::ASerialData *read_data_buf) {
+    if (m_inteface->GetState() == false) {
+        return -1;
+    }
+
+    constexpr clock_t time_out = 50;
+    
+    bool time_out_flag = false;
+    bool error_flag = false;
+
+    clock_t time_buf = clock();
+    while(1) {
+        int st = ReadDataProcess(read_data_buf);
+
+        if(st == 1) {
+            break;
+        }
+        else if(st == -1) {
+            error_flag = true;
+            break;
+        }
+
+        if(clock() - time_buf >= time_out) {
+            time_out_flag = true;
+            break;
+        }
+    }
+
+    if(error_flag == true) {    //読み取りエラー
+        return -1;
+    }
+    else if(time_out_flag == true) { //タイムアウトエラー
+        return -2;
+    }
+
+    return 0;
+}
+
 int ASerial_lib_Controller_Win::WriteData(uint8_t command, uint8_t* data, uint8_t data_num)
 {
     int BUF_SIZE = GetNeedPacketBufSize(data, data_num);
