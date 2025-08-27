@@ -107,7 +107,7 @@ int ASerial_lib_Controller_Win::ReadDataProcess(ASerialDataStruct::ASerialData* 
     int st = 0;
     if (m_inteface->available() > 0) {
         uint8_t read_c = (uint8_t)m_inteface->read();
-        st = ReadPacketData(read_c, read_data_buf);
+        st = this->ReadPacketData(read_c, read_data_buf);
     }
 
     if (st == -1) {
@@ -157,7 +157,7 @@ int ASerial_lib_Controller_Win::ReadData(ASerialDataStruct::ASerialData *read_da
 
 int ASerial_lib_Controller_Win::WriteData(uint8_t command, uint8_t* data, uint8_t data_num)
 {
-    int BUF_SIZE = GetNeedPacketBufSize(data, data_num);
+    int BUF_SIZE = this->GetNeedPacketBufSize(command, data, data_num);
 
     uint8_t* packet_buf = new uint8_t[BUF_SIZE];
 
@@ -181,9 +181,9 @@ int ASerial_lib_Controller_Win::WriteData(uint8_t command, uint8_t* data, uint8_
 
 int ASerial_lib_Controller_Win::WriteData(uint8_t command)
 {
-    const int BUF_SIZE = 6;
+    const int BUF_SIZE = this->GetNeedPacketBufSize(command);
 
-    uint8_t packet_buf[BUF_SIZE] = {0};
+    uint8_t *packet_buf = new uint8_t[BUF_SIZE];
 
     int st = MakePacketData(command, packet_buf);
 
@@ -192,6 +192,8 @@ int ASerial_lib_Controller_Win::WriteData(uint8_t command)
     }
 
     int write_size = m_inteface->write(packet_buf, BUF_SIZE);
+
+    delete [] packet_buf;
 
     if (write_size != BUF_SIZE) {
         return -1;

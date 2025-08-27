@@ -1,13 +1,19 @@
 # CHANGELOG-チェンジログ
 
 ## Active Version
-**[1.1.1]**
+**[1.1.2]**
 
 ---
+## [1.1.2] - 2025-08-27
+
+### changed
+- ASerialCoreを`1.1.0`に更新
+- ASerialCore更新に伴い、WriteDataのパケットバッファの動作を修正
+
 ## [1.1.1] - 2025-08-26
 
 ### changed
-- ASerialCoreを1.0.1に更新
+- ASerialCoreを`1.0.1`に更新
 - ReadDataProcessのシリアル読み取りをuint8_tに変更
 
 ## [1.1.0] - 2025-08-20
