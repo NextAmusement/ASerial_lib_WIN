@@ -30,7 +30,7 @@ class ASerial_lib_Controller_Win : public ASerialPacket {
     int ConnectDevice(int COM_num);
 
     /// @brief デバイスに自動接続する
-    /// @return 0:接続成功 -1:接続失敗
+    /// @return -1:接続失敗 -1以外:接続成功COM番号
     /// @note 1~255のCOM番号を順に試行し、接続可能なデバイスを探します。
     int AutoConnectDevice(void);
 
